@@ -27,17 +27,17 @@ function DCABackTest() {
   const [formInputs, setFormInputs] = useState({
     exchange: 'BINANCE',
     asset: 'BTCUSDT',
-    baseOrderAmount: 10,
-    averagingOrderAmount: 10,
-    priceDeviationPercentage: 2,
-    maximumAveragingOrderCount: 20,
-    averagingOrderVolumeScale: 1.5,
-    takeProfitPercentage: 1,
+    baseOrderAmount: 5,
+    averagingOrderAmount: 5,
+    priceDeviationPercentage: 2.7,
+    maximumAveragingOrderCount: 10,
+    averagingOrderVolumeScale: 1.9,
+    takeProfitPercentage: 0.35,
     startDate: '2021-07-01',
     endDate: '2022-07-01',
     enableCustomAveraging: true,
-    customAveragingOrderVolumeScale: getDefultVolumeScale(1.5),
-    customAveragingOrderDeviation: getDefultDeviation(2),
+    customAveragingOrderVolumeScale: getDefultVolumeScale(1.7),
+    customAveragingOrderDeviation: getDefultDeviation(0.7),
   });
   const [allOrders, setAllOrders] = useState([]);
   const [overallMetrics, setOverallMetrics] = useState({});
@@ -287,6 +287,7 @@ function DCABackTest() {
               >
                 <option value="BTCUSDT">BTC/USDT</option>
                 <option value="ETHUSDT">ETH/USDT</option>
+                <option value="DOGEUSDT">DOGE/USDT</option>
               </Form.Select>
             </Form.Group>
 
