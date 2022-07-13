@@ -13,7 +13,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/kline', async (req, res) => {
-  return res.json(data);
+  // return res.json(data);
   try {
     let isCompleted = false;
     let allData = [];

@@ -35,7 +35,7 @@ function DCABackTest() {
     takeProfitPercentage: 1,
     startDate: '2021-07-01',
     endDate: '2022-07-01',
-    enableCustomAveragingOverVolume: true,
+    enableCustomAveraging: true,
     customAveragingOrderVolumeScale: getDefultVolumeScale(1.5),
     customAveragingOrderDeviation: getDefultDeviation(2),
   });
@@ -43,12 +43,15 @@ function DCABackTest() {
   const [overallMetrics, setOverallMetrics] = useState({});
 
   function onFormInputChange(key, event, index) {
-    if (key === 'customAveragingOrderVolumeScale') {
-      const customValue = formInputs.customAveragingOrderVolumeScale;
+    if (
+      key === 'customAveragingOrderVolumeScale' ||
+      key === 'customAveragingOrderDeviation'
+    ) {
+      const customValue = formInputs[key];
       customValue[index] = parseFloat(event.target.value);
       setFormInputs({
         ...formInputs,
-        customAveragingOrderVolumeScale: customValue,
+        [key]: customValue,
       });
     } else {
       setFormInputs((formInputs) => ({
@@ -87,6 +90,8 @@ function DCABackTest() {
       totalProfit: 0,
       averageDailyProfit: 0,
       averageMonthlyProfit: 0,
+      avergaeDailyProfitPercentage: 0,
+      averageMonthlyProfitPercentage: 0,
       dcaCombinations: {},
     };
     const priceDeviationPercentage =
@@ -167,9 +172,18 @@ function DCABackTest() {
           let orderPrice = nextBuyTarget;
 
           // Find new sell target and next buy target
-          nextBuyTarget = nextBuyTarget * (1 - priceDeviationPercentage);
+          let nextTargetPriceDeviation = priceDeviationPercentage;
+          if (formInputs?.enableCustomAveraging) {
+            const nextTargetPriceDeviationVal = parseFloat(
+              formInputs.customAveragingOrderDeviation[averagingOrderCount]
+            );
+            console.log(averagingOrderCount, nextTargetPriceDeviationVal);
+            nextTargetPriceDeviation = nextTargetPriceDeviationVal / 100;
+          }
+
+          nextBuyTarget = nextBuyTarget * (1 - nextTargetPriceDeviation);
           let orderAmout = averagingOrderAmount;
-          if (formInputs?.enableCustomAveragingOverVolume) {
+          if (formInputs?.enableCustomAveraging) {
             orderAmout =
               averagingOrderAmount *
               formInputs.customAveragingOrderVolumeScale[averagingOrderCount];
@@ -209,6 +223,13 @@ function DCABackTest() {
     overallMetrics.averageDailyProfit = overallMetrics.totalProfit / totalDays;
     overallMetrics.averageMonthlyProfit =
       (overallMetrics.totalProfit / totalDays) * 30;
+    overallMetrics.avergaeDailyProfitPercentage =
+      (overallMetrics.averageDailyProfit / overallMetrics.maxCapitalInvested) *
+      100;
+    overallMetrics.averageMonthlyProfitPercentage =
+      (overallMetrics.averageMonthlyProfit /
+        overallMetrics.maxCapitalInvested) *
+      100;
 
     // console.table(overallMetrics);
     // console.table(allOrders);
@@ -356,12 +377,11 @@ function DCABackTest() {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                checked={formInputs?.customAveragingOrderVolumeScale}
+                checked={formInputs?.enableCustomAveraging}
                 onChange={() =>
                   setFormInputs({
                     ...formInputs,
-                    customAveragingOrderVolumeScale:
-                      !formInputs.customAveragingOrderVolumeScale,
+                    enableCustomAveraging: !formInputs.enableCustomAveraging,
                   })
                 }
                 label="Enable Custom Averaging Order Volume!"
