@@ -151,6 +151,11 @@ async function dcaBacktest({
           lastCallbackPrice = priceLow;
           triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
         }
+
+        // Check if this is a conflicting order
+        if (priceLow <= supportOrderTarget && priceHigh >= triggerPrice) {
+          overallMetrics.conflictingOrders += 1;
+        }
       }
       // Place support order if price matches the deviation percentage
       else if (priceLow <= supportOrderTarget) {
@@ -172,6 +177,11 @@ async function dcaBacktest({
         supportingOrderCount = soCount;
         takeProfitTarget = tpTarget;
         supportOrderTarget = soTarget;
+      }
+
+      // Check if this is a conflicting order
+      if (priceLow <= supportOrderTarget && priceHigh >= takeProfitTarget) {
+        overallMetrics.conflictingOrders += 1;
       }
     }
   });

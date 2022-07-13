@@ -4,6 +4,7 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const data = require("./btc-data.json");
 const { dcaBacktest } = require("./backtesting");
+const { parse } = require("date-fns");
 
 const app = express();
 const port = 4000;
@@ -39,26 +40,37 @@ app.get("/kline", async (req, res) => {
   try {
     let isCompleted = false;
     let allData = [];
-    const endTime = req.query.endTime;
-    let startTime = req.query.startTime;
+    const startDate = req.query.startDate ? parse(req.query.startDate, "yyyy-MM-dd", new Date()) : new Date();
+    const endDate = req.query.endDate ? parse(req.query.endDate, "yyyy-MM-dd", new Date()) : new Date();
+    const symbol = req.query.symbol || "BTCUSDT";
+    const interval = req.query.interval || "1h";
+
+    const endTime = endDate.getTime();
+    let startTime = startDate.getTime();
+    let lastEndTime;
     while (!isCompleted) {
-      console.log({
-        startTime,
-        endTime,
-      });
+      console.log(startTime, endTime);
       const response = await axios.get("https://api.binance.com/api/v3/klines", {
         params: {
-          ...req.query,
+          symbol,
+          interval,
           startTime,
+          endTime,
           limit: 1000,
         },
       });
       const data = response.data;
-      allData = [...allData, ...data];
-      if (data[data?.length - 1][0] >= endTime) {
+      const lastData = data[data?.length - 1];
+      const resEndTime = lastData[0];
+      if (resEndTime >= endTime) {
+        allData = [...allData, ...data];
+        isCompleted = true;
+      } else if (lastEndTime === resEndTime) {
         isCompleted = true;
       } else {
-        startTime = data[data?.length - 1][0];
+        allData = [...allData, ...data];
+        lastEndTime = resEndTime;
+        startTime = resEndTime;
       }
     }
     return res.json(allData);
