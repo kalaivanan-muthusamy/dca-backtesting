@@ -3,6 +3,26 @@ import { differenceInDays, differenceInMinutes, parse } from 'date-fns';
 import React, { useState } from 'react';
 import { Tabs, Tab, Form, Button, Row, Col } from 'react-bootstrap';
 
+function getDefultVolumeScale(base) {
+  const scale = {};
+  for (let i = 1; i < 21; i++) {
+    scale[i] = i === 1 ? 1 : Math.pow(base, i - 1);
+  }
+  return scale;
+}
+
+function getDefultDeviation(base, scale = false) {
+  const deviation = {};
+  for (let i = 1; i < 21; i++) {
+    if (scale) {
+      deviation[i] = i === 1 ? 1 : Math.pow(base, i - 1);
+    } else {
+      deviation[i] = base;
+    }
+  }
+  return deviation;
+}
+
 function DCABackTest() {
   const [formInputs, setFormInputs] = useState({
     exchange: 'BINANCE',
@@ -10,24 +30,14 @@ function DCABackTest() {
     baseOrderAmount: 10,
     averagingOrderAmount: 10,
     priceDeviationPercentage: 2,
-    maximumAveragingOrderCount: 10,
+    maximumAveragingOrderCount: 20,
     averagingOrderVolumeScale: 1.5,
     takeProfitPercentage: 1,
     startDate: '2021-07-01',
     endDate: '2022-07-01',
     enableCustomAveragingOverVolume: true,
-    customAveragingOrderVolumeScale: {
-      1: 1.5,
-      2: 1.5,
-      3: 1.5,
-      4: 1.5,
-      5: 1.5,
-      6: 1.5,
-      7: 1.5,
-      8: 1.5,
-      9: 1.5,
-      10: 1.5,
-    },
+    customAveragingOrderVolumeScale: getDefultVolumeScale(1.5),
+    customAveragingOrderDeviation: getDefultDeviation(2),
   });
   const [allOrders, setAllOrders] = useState([]);
   const [overallMetrics, setOverallMetrics] = useState({});
@@ -361,25 +371,52 @@ function DCABackTest() {
               ...new Array(parseInt(formInputs?.maximumAveragingOrderCount)),
             ].map((o, index) => {
               return (
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    {index + 1} Averaging Order Volume Scale
-                  </Form.Label>
-                  <Form.Control
-                    onChange={(e) =>
-                      onFormInputChange(
-                        'customAveragingOrderVolumeScale',
-                        e,
-                        index + 1
-                      )
-                    }
-                    value={
-                      formInputs?.customAveragingOrderVolumeScale?.[index + 1]
-                    }
-                    type="number"
-                    placeholder="Averaging Order Volume Scale"
-                  />
-                </Form.Group>
+                <Row>
+                  <Col>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        {index + 1} Averaging Order Volume Scale
+                      </Form.Label>
+                      <Form.Control
+                        onChange={(e) =>
+                          onFormInputChange(
+                            'customAveragingOrderVolumeScale',
+                            e,
+                            index + 1
+                          )
+                        }
+                        value={
+                          formInputs?.customAveragingOrderVolumeScale?.[
+                            index + 1
+                          ]
+                        }
+                        type="number"
+                        placeholder="Averaging Order Volume Scale"
+                      />
+                    </Form.Group>
+                  </Col>
+                  <Col>
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        {index + 1} Averaging Order Deviation
+                      </Form.Label>
+                      <Form.Control
+                        onChange={(e) =>
+                          onFormInputChange(
+                            'customAveragingOrderDeviation',
+                            e,
+                            index + 1
+                          )
+                        }
+                        value={
+                          formInputs?.customAveragingOrderDeviation?.[index + 1]
+                        }
+                        type="number"
+                        placeholder="Averaging Order Volume Scale"
+                      />
+                    </Form.Group>
+                  </Col>
+                </Row>
               );
             })}
           </Tab>
