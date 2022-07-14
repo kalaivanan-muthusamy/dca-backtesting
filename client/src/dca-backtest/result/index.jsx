@@ -1,53 +1,8 @@
 import { format, parse } from "date-fns";
 import React, { useEffect, useState } from "react";
-import { Tabs, Tab } from "react-bootstrap";
+import { Tabs, Tab, Tooltip as ReactTooltip, Popover } from "react-bootstrap";
 import DataTable from "react-data-table-component";
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
-const data = [
-  {
-    name: "Page A",
-    uv: 4000,
-    pv: 2400,
-    amt: 2400,
-  },
-  {
-    name: "Page B",
-    uv: 3000,
-    pv: 1398,
-    amt: 2210,
-  },
-  {
-    name: "Page C",
-    uv: 2000,
-    pv: 9800,
-    amt: 2290,
-  },
-  {
-    name: "Page D",
-    uv: 2780,
-    pv: 3908,
-    amt: 2000,
-  },
-  {
-    name: "Page E",
-    uv: 1890,
-    pv: 4800,
-    amt: 2181,
-  },
-  {
-    name: "Page F",
-    uv: 2390,
-    pv: 3800,
-    amt: 2500,
-  },
-  {
-    name: "Page G",
-    uv: 3490,
-    pv: 4300,
-    amt: 2100,
-  },
-];
 
 const columns = [
   {
@@ -108,17 +63,30 @@ function BacktestResults({ overallMetrics = {}, allOrders = [] }) {
 
   function getProfitDetails() {
     const monthlyProfit = {};
+    const investment = overallMetrics.maxCapitalInvested;
     allOrders.map((order) => {
       if (order.type === "sell") {
         const month = format(parse(order.orderTime, "dd-MM-yyyy HH:mm:ss", new Date()), "MM-yyyy");
         if (monthlyProfit[month]) {
-          monthlyProfit[month] = monthlyProfit[month] + order.profit;
+          monthlyProfit[month] = {
+            profit: monthlyProfit[month].profit + order.profit,
+            totalCompletedOrders: monthlyProfit[month].totalCompletedOrders + 1,
+          };
         } else {
-          monthlyProfit[month] = order.profit;
+          monthlyProfit[month] = {
+            profit: order.profit,
+            totalCompletedOrders: 1,
+          };
         }
       }
     });
-    console.log(monthlyProfit);
+    const profitDetails = Object.keys(monthlyProfit).map((key) => {
+      const profit = monthlyProfit[key].profit;
+      const totalCompletedOrders = monthlyProfit[key].totalCompletedOrders;
+      const profitPercentage = parseFloat(((profit / investment) * 100).toFixed(2));
+      return { month: key, profit, profitPercentage, totalCompletedOrders };
+    });
+    setProfitDetails(profitDetails);
   }
 
   return (
@@ -130,49 +98,13 @@ function BacktestResults({ overallMetrics = {}, allOrders = [] }) {
       </Tab>
       <Tab eventKey="orders" title="Orders">
         <DataTable columns={columns} data={allOrders} pagination dense highlightOnHover pointerOnHover />
-        {/* {allOrders.length > 0 && (
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th>S.No</th>
-                <th>Order Time</th>
-                <th>Order Type</th>
-                <th>Price</th>
-                <th>Amount</th>
-                <th>Quantity</th>
-                <th>TP Target</th>
-                <th>SO Target</th>
-                <th>Profit</th>
-                <th>DCA Count</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allOrders?.map((order, index) => (
-                <tr key={index}>
-                  <td>{index + 1}</td>
-                  <td>{order.orderTime}</td>
-                  <td>
-                    <span className={order.type === "sell" ? "text-success fw-bold" : ""}>{order.type}</span>
-                  </td>
-                  <td>{(order.price || 0).toFixed(2)}</td>
-                  <td>{order.amount}</td>
-                  <td>{order.quantity}</td>
-                  <td>{(order.takeProfitTarget || 0).toFixed(2)}</td>
-                  <td>{(order.supportOrderTarget || 0).toFixed(2)}</td>
-                  <td>{(order.profit || 0).toFixed(2)}</td>
-                  <td>{order.supportingOrderCount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )} */}
       </Tab>
       <Tab eventKey="profitDetails" title="Profit Details">
         <ResponsiveContainer width="100%" height={500}>
           <BarChart
             width={500}
             height={300}
-            data={data}
+            data={profitDetails}
             margin={{
               top: 5,
               right: 30,
@@ -181,17 +113,30 @@ function BacktestResults({ overallMetrics = {}, allOrders = [] }) {
             }}
           >
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="name" />
+            <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip content={renderTooltip} />
             <Legend />
-            <Bar dataKey="pv" fill="#8884d8" />
-            <Bar dataKey="uv" fill="#82ca9d" />
+            <Bar dataKey="profit" fill="#8884d8" />
           </BarChart>
         </ResponsiveContainer>
       </Tab>
     </Tabs>
   );
 }
+
+const renderTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload?.[0]?.payload;
+    return (
+      <div className="tooltip-inner text-start">
+        <div>Month: {data.month}</div>
+        <div>Completed Orders: {data.totalCompletedOrders}</div>
+        <div>Profit: {data.profit}</div>
+        <div>Profit Percentage: {data.profitPercentage}%</div>
+      </div>
+    );
+  }
+};
 
 export default React.memo(BacktestResults);

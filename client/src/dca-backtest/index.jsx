@@ -63,8 +63,8 @@ function DCABackTest() {
 
   async function getBackestDetails() {
     setLoading(true);
-    setOverallMetrics({});
-    setAllOrders([]);
+    // setOverallMetrics({});
+    // setAllOrders([]);
     const res = await axios.post(`${import.meta.env.VITE_API_URL}/backtest`, {
       ...formInputs,
     });

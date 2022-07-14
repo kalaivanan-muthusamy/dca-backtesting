@@ -240,8 +240,8 @@ function createSupportOrder({
   const { averagePrice } = getOrdersInfo([
     ...currentDCAOrders,
     {
-      amount: supportOrderAmount,
-      quantity: supportOrderAmount / supportOrderTarget,
+      amount: orderAmout,
+      quantity: orderAmout / orderPrice,
     },
   ]);
   const takeProfitTarget = averagePrice * (1 + takeProfitPercentage);
