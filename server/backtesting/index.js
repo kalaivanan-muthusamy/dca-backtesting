@@ -1,5 +1,5 @@
 const { parse, differenceInDays, format } = require("date-fns");
-const testData = require("../btc-data.json");
+const testData = require("../data.json");
 
 async function dcaBacktest({
   // basic settings

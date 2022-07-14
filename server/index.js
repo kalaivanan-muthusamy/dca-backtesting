@@ -2,7 +2,7 @@ const { default: axios } = require("axios");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const data = require("./btc-data.json");
+const data = require("./data.json");
 const { dcaBacktest } = require("./backtesting");
 const { parse } = require("date-fns");
 
