@@ -1,7 +1,8 @@
 import axios from "axios";
 import { differenceInDays, format, parse } from "date-fns";
-import React, { useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { Tabs, Tab, Form, Button, Row, Col, Spinner } from "react-bootstrap";
+import BacktestResults from "./result";
 
 function getDefultVolumeScale(base) {
   const scale = {};
@@ -34,7 +35,7 @@ function DCABackTest() {
     maximumAveragingOrderCount: 10,
     supportOrderAmountScale: 2,
     takeProfitPercentage: 1,
-    startDate: "2021-07-01",
+    startDate: "2020-07-01",
     endDate: "2022-07-01",
     enableCustomSupportOrders: true,
     enableCallback: true,
@@ -68,6 +69,7 @@ function DCABackTest() {
       ...formInputs,
     });
     setOverallMetrics(res?.data?.overallMetrics);
+    setAllOrders(res?.data?.allOrders);
     setLoading(false);
   }
 
@@ -241,43 +243,7 @@ function DCABackTest() {
           {Object.keys(overallMetrics || {}).length > 0 && (
             <>
               <h2>Results</h2>
-              <pre>{JSON.stringify(overallMetrics, null, 2)}</pre>
-              {allOrders.length > 0 && (
-                <table className="table table-striped">
-                  <thead>
-                    <tr>
-                      <th>S.No</th>
-                      <th>Order Time</th>
-                      <th>Order Type</th>
-                      <th>Price</th>
-                      <th>Amount</th>
-                      <th>Quantity</th>
-                      <th>TP Target</th>
-                      <th>SO Target</th>
-                      <th>Profit</th>
-                      <th>DCA Count</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allOrders?.map((order, index) => (
-                      <tr key={index}>
-                        <td>{index + 1}</td>
-                        <td>{order.orderTime}</td>
-                        <td>
-                          <span className={order.type === "sell" ? "text-success fw-bold" : ""}>{order.type}</span>
-                        </td>
-                        <td>{(order.price || 0).toFixed(2)}</td>
-                        <td>{order.amount}</td>
-                        <td>{order.quantity}</td>
-                        <td>{(order.takeProfitTarget || 0).toFixed(2)}</td>
-                        <td>{(order.supportOrderTarget || 0).toFixed(2)}</td>
-                        <td>{(order.profit || 0).toFixed(2)}</td>
-                        <td>{order.supportingOrderCount}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+              <BacktestResults overallMetrics={overallMetrics} allOrders={allOrders} />
             </>
           )}
         </Col>

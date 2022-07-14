@@ -195,7 +195,7 @@ async function dcaBacktest({
     (overallMetrics.averageMonthlyProfit / overallMetrics.maxCapitalInvested) * 100;
 
   return {
-    // allOrders,
+    allOrders,
     overallMetrics,
   };
 }
