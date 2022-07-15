@@ -2,45 +2,17 @@ import axios from "axios";
 import { differenceInDays, format, parse } from "date-fns";
 import React, { useMemo, useState, useCallback } from "react";
 import { Tabs, Tab, Form, Button, Row, Col, Spinner } from "react-bootstrap";
+import { DCA_PRESET } from "./config";
 import BacktestResults from "./result";
-
-function getDefultVolumeScale(base) {
-  const scale = {};
-  for (let i = 1; i < 21; i++) {
-    scale[i] = i === 1 ? 1 : Math.pow(base, i - 1);
-  }
-  return scale;
-}
-
-function getDefultDeviation(base, scale = false) {
-  const deviation = {};
-  for (let i = 1; i < 21; i++) {
-    if (scale) {
-      deviation[i] = i === 1 ? 1 : Math.pow(base, i - 1);
-    } else {
-      deviation[i] = base;
-    }
-  }
-  return deviation;
-}
 
 function DCABackTest() {
   const [loading, setLoading] = useState(false);
   const [formInputs, setFormInputs] = useState({
     exchange: "BINANCE",
     asset: "BTCUSDT",
-    baseOrderAmount: 10,
-    supportOrderAmount: 10,
-    supportOrderPriceDeviationPercentage: 2,
-    maximumAveragingOrderCount: 10,
-    supportOrderAmountScale: 2,
-    takeProfitPercentage: 1,
     startDate: "2020-07-01",
     endDate: "2022-07-01",
-    enableCustomSupportOrders: true,
-    enableCallback: true,
-    customerSupportOrderAmountScale: getDefultVolumeScale(1.5),
-    customSupportOrderDeviation: getDefultDeviation(2, false),
+    ...DCA_PRESET.BTC_12_4,
   });
   const [allOrders, setAllOrders] = useState([]);
   const [overallMetrics, setOverallMetrics] = useState({});
@@ -189,14 +161,14 @@ function DCABackTest() {
             <Form.Group className="mb-3">
               <Form.Check
                 type="checkbox"
-                checked={formInputs?.enableCallback}
+                checked={formInputs?.enableSmartOrder}
                 onChange={() =>
                   setFormInputs({
                     ...formInputs,
-                    enableCallback: !formInputs.enableCallback,
+                    enableSmartOrder: !formInputs.enableSmartOrder,
                   })
                 }
-                label="Enable Callback"
+                label="Enable Smart Order"
               />
             </Form.Group>
             {[...new Array(parseInt(formInputs?.maximumAveragingOrderCount))].map((o, index) => {

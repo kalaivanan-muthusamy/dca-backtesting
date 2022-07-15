@@ -17,7 +17,7 @@ async function dcaBacktest({
   takeProfitPercentage,
   // advanced settings
   enableCustomSupportOrders,
-  enableCallback,
+  enableSmartOrder,
   customSupportOrderDeviation,
   customerSupportOrderAmountScale,
 }) {
@@ -29,7 +29,7 @@ async function dcaBacktest({
     supportOrderPriceDeviationPercentage,
     supportOrderAmountScale,
     takeProfitPercentage,
-    enableCallback,
+    enableSmartOrder,
   });
 
   const backtestStartDate = parse(startDate, "yyyy-MM-dd", new Date());
@@ -121,7 +121,7 @@ async function dcaBacktest({
         currentDCAOrders = [];
       }
       // Identity the next averaging order target and wait for the callback to be executed
-      else if (enableCallback && supportingOrderCount > 2) {
+      else if (enableSmartOrder && supportingOrderCount > 2) {
         if (!lastCallbackPrice && priceLow <= supportOrderTarget) {
           lastCallbackPrice = supportOrderTarget;
           triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);

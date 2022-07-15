@@ -29,7 +29,7 @@ app.post("/backtest", async (req, res) => {
     supportOrderAmountScale: parseFloat(req.body.supportOrderAmountScale),
     takeProfitPercentage: parseFloat(req.body.takeProfitPercentage),
     enableCustomSupportOrders: req.body.enableCustomSupportOrders,
-    enableCallback: req.body.enableCallback,
+    enableSmartOrder: req.body.enableSmartOrder,
     customerSupportOrderAmountScale: req.body.customerSupportOrderAmountScale,
     customSupportOrderDeviation: req.body.customSupportOrderDeviation,
   });
