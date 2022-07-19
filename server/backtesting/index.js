@@ -1,5 +1,6 @@
 const { parse, differenceInDays, format } = require("date-fns");
 const testData = require("../data.json");
+const KLineModel = require("./kline-schema");
 
 async function dcaBacktest({
   // basic settings
@@ -21,23 +22,20 @@ async function dcaBacktest({
   customSupportOrderDeviation,
   customerSupportOrderAmountScale,
 }) {
-  console.log({
-    baseOrderAmount,
-    startDate,
-    endDate,
-    supportOrderAmount,
-    supportOrderPriceDeviationPercentage,
-    supportOrderAmountScale,
-    takeProfitPercentage,
-    enableSmartOrder,
-  });
-
   const backtestStartDate = parse(startDate, "yyyy-MM-dd", new Date());
   const backtestEndDate = parse(endDate, "yyyy-MM-dd", new Date());
   const totalDays = differenceInDays(backtestEndDate, backtestStartDate);
 
   // GET KLINE DATA
-  const backTestData = testData;
+  const backTestData = await KLineModel.find({
+    symbol: asset,
+    interval: "15m",
+    time: {
+      $gte: backtestStartDate,
+      $lte: backtestEndDate,
+    },
+  }).sort({ time: 1 });
+  console.log({ totalEntries: backTestData.length });
 
   // START TESTING
   const allOrders = [];
@@ -70,11 +68,11 @@ async function dcaBacktest({
   let lastCallbackPrice;
   let triggerPrice;
   backTestData.map((klineData) => {
-    const orderTime = format(new Date(klineData[0]), "dd-MM-yyyy HH:mm:ss");
-    const openPrice = parseFloat(klineData[1]);
-    const priceHigh = parseFloat(klineData[2]);
-    const priceLow = parseFloat(klineData[3]);
-    const closePrice = parseFloat(klineData[4]);
+    const orderTime = format(new Date(klineData.time), "dd-MM-yyyy HH:mm:ss");
+    const openPrice = parseFloat(klineData.open);
+    const priceHigh = parseFloat(klineData.high);
+    const priceLow = parseFloat(klineData.low);
+    const closePrice = parseFloat(klineData.close);
 
     if (currentDCAOrders.length === 0) {
       // Set the order price as last profit taking order price or the current kline open price
