@@ -1,11 +1,8 @@
 require("dotenv").config();
-const { default: axios } = require("axios");
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const data = require("./data.json");
 const { dcaBacktest } = require("./backtesting");
-const { parse } = require("date-fns");
 const { loadKlineData } = require("./backtesting/load-kline");
 const { default: mongoose } = require("mongoose");
 
@@ -50,47 +47,6 @@ app.get("/kline", async (req, res) => {
     interval: req.query.interval || "15m",
   });
   return res.json(data);
-  try {
-    let isCompleted = false;
-    let allData = [];
-    const startDate = req.query.startDate ? parse(req.query.startDate, "yyyy-MM-dd", new Date()) : new Date();
-    const endDate = req.query.endDate ? parse(req.query.endDate, "yyyy-MM-dd", new Date()) : new Date();
-    const symbol = req.query.symbol || "BTCUSDT";
-    const interval = req.query.interval || "1h";
-
-    const endTime = endDate.getTime();
-    let startTime = startDate.getTime();
-    let lastEndTime;
-    while (!isCompleted) {
-      console.log(startTime, endTime);
-      const response = await axios.get("https://api.binance.com/api/v3/klines", {
-        params: {
-          symbol,
-          interval,
-          startTime,
-          endTime,
-          limit: 1000,
-        },
-      });
-      const data = response.data;
-      const lastData = data[data?.length - 1];
-      const resEndTime = lastData[0];
-      if (resEndTime >= endTime) {
-        allData = [...allData, ...data];
-        isCompleted = true;
-      } else if (lastEndTime === resEndTime) {
-        isCompleted = true;
-      } else {
-        allData = [...allData, ...data];
-        lastEndTime = resEndTime;
-        startTime = resEndTime;
-      }
-    }
-    return res.json(allData);
-  } catch (err) {
-    console.error(err);
-  }
-  res.send("Hello World!");
 });
 
 app.listen(port, () => {

@@ -1,5 +1,4 @@
 const { parse, differenceInDays, format } = require("date-fns");
-const testData = require("../data.json");
 const KLineModel = require("./kline-schema");
 
 async function dcaBacktest({
@@ -35,18 +34,6 @@ async function dcaBacktest({
       $lte: backtestEndDate,
     },
   }).sort({ time: 1 });
-
-  // backTestData = testData.map((item) => ({
-  //   exchange: "BINANCE",
-  //   symbol: "BTCUSDT",
-  //   interval: "15m",
-  //   timestamp: item[0],
-  //   time: item[0],
-  //   open: item[1],
-  //   high: item[2],
-  //   low: item[3],
-  //   close: item[3],
-  // }));
 
   console.log({ totalEntries: backTestData.length });
 
