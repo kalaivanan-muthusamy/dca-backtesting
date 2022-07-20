@@ -6,6 +6,7 @@ const klineSchema = new Schema({
   symbol: String,
   interval: String,
   time: Date,
+  timestamp: Number,
   open: Number,
   high: Number,
   low: Number,

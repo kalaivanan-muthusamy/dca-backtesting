@@ -64,6 +64,7 @@ function DCABackTest() {
                 <option value="ETHUSDT">ETH/USDT</option>
                 <option value="DOGEUSDT">DOGE/USDT</option>
                 <option value="BNBUSDT">BNB/USDT</option>
+                <option value="TRXUSDT">TRX/USDT</option>
               </Form.Select>
             </Form.Group>
 
@@ -117,8 +118,8 @@ function DCABackTest() {
             <Form.Group className="mb-3">
               <Form.Label>Maximum Support Orders Count</Form.Label>
               <Form.Control
-                onChange={(e) => onFormInputChange("maximumAveragingOrderCount", e)}
-                value={formInputs?.maximumAveragingOrderCount}
+                onChange={(e) => onFormInputChange("maximumSupportOrdersCount", e)}
+                value={formInputs?.maximumSupportOrdersCount}
                 type="number"
                 placeholder="Maximum Support Order"
               />
@@ -171,7 +172,7 @@ function DCABackTest() {
                 label="Enable Smart Order"
               />
             </Form.Group>
-            {[...new Array(parseInt(formInputs?.maximumAveragingOrderCount))].map((o, index) => {
+            {[...new Array(parseInt(formInputs?.maximumSupportOrdersCount))].map((o, index) => {
               return (
                 <Row>
                   <Col>

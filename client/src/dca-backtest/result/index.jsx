@@ -18,13 +18,13 @@ const columns = [
   {
     name: "Price",
     selector: (row) => row.price,
-    format: (row) => row.price?.toFixed(2),
-    width: "100px",
+    format: (row) => row.price?.toFixed(6),
+    width: "120px",
   },
   {
     name: "Amount",
     selector: (row) => row.amount,
-    format: (row) => row.amount?.toFixed(2),
+    format: (row) => row.amount?.toFixed(6),
     width: "100px",
   },
   {
@@ -35,17 +35,17 @@ const columns = [
   {
     name: "TP Target",
     selector: (row) => row.takeProfitTarget,
-    format: (row) => row.takeProfitTarget?.toFixed(2),
+    format: (row) => row.takeProfitTarget?.toFixed(6),
   },
   {
     name: "SO Target",
     selector: (row) => row.supportOrderTarget,
-    format: (row) => row.supportOrderTarget?.toFixed(2),
+    format: (row) => row.supportOrderTarget?.toFixed(6),
   },
   {
     name: "Profit",
     selector: (row) => row.profit,
-    format: (row) => row.profit?.toFixed(2),
+    format: (row) => row.profit?.toFixed(6),
   },
   {
     name: "SO",

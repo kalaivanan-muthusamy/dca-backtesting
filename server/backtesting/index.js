@@ -27,7 +27,7 @@ async function dcaBacktest({
   const totalDays = differenceInDays(backtestEndDate, backtestStartDate);
 
   // GET KLINE DATA
-  const backTestData = await KLineModel.find({
+  let backTestData = await KLineModel.find({
     symbol: asset,
     interval: "15m",
     time: {
@@ -35,6 +35,19 @@ async function dcaBacktest({
       $lte: backtestEndDate,
     },
   }).sort({ time: 1 });
+
+  // backTestData = testData.map((item) => ({
+  //   exchange: "BINANCE",
+  //   symbol: "BTCUSDT",
+  //   interval: "15m",
+  //   timestamp: item[0],
+  //   time: item[0],
+  //   open: item[1],
+  //   high: item[2],
+  //   low: item[3],
+  //   close: item[3],
+  // }));
+
   console.log({ totalEntries: backTestData.length });
 
   // START TESTING
@@ -54,6 +67,7 @@ async function dcaBacktest({
     averageMonthlyProfitPercentage: 0,
     dcaCombinations: {},
     conflictingOrders: 0,
+    exceededMaxSupportOrdersCount: 0,
   };
   const priceDeviationPercentage = parseFloat(supportOrderPriceDeviationPercentage) / 100;
   takeProfitPercentage = parseFloat(takeProfitPercentage) / 100;
@@ -124,6 +138,46 @@ async function dcaBacktest({
           lastCallbackPrice = supportOrderTarget;
           triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
         } else if (priceHigh >= triggerPrice) {
+          if (supportingOrderCount === maximumSupportOrdersCount) {
+            overallMetrics.exceededMaxSupportOrdersCount += 1;
+          } else {
+            const { soCount, tpTarget, soTarget } = createSupportOrder({
+              supportingOrderCount,
+              supportOrderTarget,
+              priceDeviationPercentage,
+              supportOrderAmount,
+              currentDCAOrders,
+              takeProfitPercentage,
+              orderTime,
+              allOrders,
+              enableCustomSupportOrders,
+              customSupportOrderDeviation,
+              customerSupportOrderAmountScale,
+              supportOrderAmountScale,
+            });
+
+            supportingOrderCount = soCount;
+            takeProfitTarget = tpTarget;
+            supportOrderTarget = soTarget;
+
+            lastCallbackPrice = null;
+            triggerPrice = null;
+          }
+        } else {
+          lastCallbackPrice = priceLow;
+          triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
+        }
+
+        // Check if this is a conflicting order
+        if (priceLow <= supportOrderTarget && priceHigh >= triggerPrice) {
+          overallMetrics.conflictingOrders += 1;
+        }
+      }
+      // Place support order if price matches the deviation percentage
+      else if (priceLow <= supportOrderTarget) {
+        if (supportingOrderCount === maximumSupportOrdersCount) {
+          overallMetrics.exceededMaxSupportOrdersCount += 1;
+        } else {
           const { soCount, tpTarget, soTarget } = createSupportOrder({
             supportingOrderCount,
             supportOrderTarget,
@@ -142,39 +196,7 @@ async function dcaBacktest({
           supportingOrderCount = soCount;
           takeProfitTarget = tpTarget;
           supportOrderTarget = soTarget;
-
-          lastCallbackPrice = null;
-          triggerPrice = null;
-        } else {
-          lastCallbackPrice = priceLow;
-          triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
         }
-
-        // Check if this is a conflicting order
-        if (priceLow <= supportOrderTarget && priceHigh >= triggerPrice) {
-          overallMetrics.conflictingOrders += 1;
-        }
-      }
-      // Place support order if price matches the deviation percentage
-      else if (priceLow <= supportOrderTarget) {
-        const { soCount, tpTarget, soTarget } = createSupportOrder({
-          supportingOrderCount,
-          supportOrderTarget,
-          priceDeviationPercentage,
-          supportOrderAmount,
-          currentDCAOrders,
-          takeProfitPercentage,
-          orderTime,
-          allOrders,
-          enableCustomSupportOrders,
-          customSupportOrderDeviation,
-          customerSupportOrderAmountScale,
-          supportOrderAmountScale,
-        });
-
-        supportingOrderCount = soCount;
-        takeProfitTarget = tpTarget;
-        supportOrderTarget = soTarget;
       }
 
       // Check if this is a conflicting order
