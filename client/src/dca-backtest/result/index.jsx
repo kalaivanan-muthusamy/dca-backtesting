@@ -8,7 +8,7 @@ const columns = [
   {
     name: "Order Time",
     selector: (row) => row.orderTime,
-    width: "160px",
+    width: "155px",
   },
   {
     name: "Type",
@@ -18,40 +18,78 @@ const columns = [
   {
     name: "Price",
     selector: (row) => row.price,
-    format: (row) => row.price?.toFixed(6),
+    format: (row) => parseNumber(row.price),
     width: "120px",
   },
   {
     name: "Amount",
     selector: (row) => row.amount,
-    format: (row) => row.amount?.toFixed(6),
+    format: (row) => parseNumber(row.amount),
     width: "100px",
   },
+  // {
+  //   name: "Quantity",
+  //   selector: (row) => row.quantity,
+  //   width: "200px",
+  // },
   {
-    name: "Quantity",
-    selector: (row) => row.quantity,
-    width: "200px",
+    name: "Avg.Price",
+    selector: (row) => row.averagePrice,
+    format: (row) => (
+      <>
+        {row.averagePrice && (
+          <>
+            {parseNumber(row.averagePrice)} ({parseNumber(row.deviationPercentageFromAverage, 2)}%)
+          </>
+        )}
+      </>
+    ),
+    width: "180px",
   },
   {
     name: "TP Target",
     selector: (row) => row.takeProfitTarget,
-    format: (row) => row.takeProfitTarget?.toFixed(6),
+    format: (row) => parseNumber(row.takeProfitTarget),
   },
   {
     name: "SO Target",
     selector: (row) => row.supportOrderTarget,
-    format: (row) => row.supportOrderTarget?.toFixed(6),
+    format: (row) => (
+      <>
+        {row.supportOrderTarget && (
+          <>
+            {parseNumber(row.supportOrderTarget)} ({parseNumber(row.supportOrderDeviationPercentage, 2)}%)
+          </>
+        )}
+      </>
+    ),
+    width: "180px",
   },
   {
     name: "Profit",
     selector: (row) => row.profit,
-    format: (row) => row.profit?.toFixed(6),
+    format: (row) => (
+      <>
+        {row.profit && (
+          <>
+            {parseNumber(row.profit)} ({parseNumber(row?.profitPercentage, 2)}%)
+          </>
+        )}
+      </>
+    ),
+    width: "140px",
   },
   {
     name: "SO",
     selector: (row) => row.supportingOrderCount,
+    width: "60px",
   },
 ];
+
+function parseNumber(value, decimal = 6) {
+  if (isNaN(value)) return "";
+  return parseFloat(value?.toFixed(decimal));
+}
 
 function BacktestResults({ overallMetrics = {}, allOrders = [] }) {
   const [profitDetails, setProfitDetails] = useState([]);

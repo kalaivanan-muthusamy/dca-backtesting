@@ -18,7 +18,11 @@ function DCABackTest() {
   const [overallMetrics, setOverallMetrics] = useState({});
 
   function onFormInputChange(key, event, index) {
-    if (key === "customerSupportOrderAmountScale" || key === "customSupportOrderDeviation") {
+    if (
+      key === "customSupportOrderAmountScale" ||
+      key === "customSupportOrderDeviation" ||
+      key === "customTrailingBuyDeviation"
+    ) {
       const customValue = formInputs[key];
       customValue[index] = parseFloat(event.target.value);
       setFormInputs({
@@ -107,7 +111,7 @@ function DCABackTest() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Price Deviation to Open Support Orders</Form.Label>
+              <Form.Label>Price Deviation to Open Support Orders (%)</Form.Label>
               <Form.Control
                 onChange={(e) => onFormInputChange("supportOrderPriceDeviationPercentage", e)}
                 value={formInputs?.supportOrderPriceDeviationPercentage}
@@ -115,6 +119,30 @@ function DCABackTest() {
                 placeholder="Price Deviation"
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                checked={formInputs?.enableTrailingBuy}
+                onChange={() =>
+                  setFormInputs({
+                    ...formInputs,
+                    enableTrailingBuy: !formInputs.enableTrailingBuy,
+                  })
+                }
+                label="Enable Trailing Buy"
+              />
+            </Form.Group>
+            {formInputs?.enableTrailingBuy && (
+              <Form.Group className="mb-3">
+                <Form.Label>Tailing Buy Deviation (%)</Form.Label>
+                <Form.Control
+                  onChange={(e) => onFormInputChange("trailingBuyDeviation", e)}
+                  value={formInputs?.trailingBuyDeviation}
+                  type="number"
+                  placeholder="Trailing Buy Deviation (%)"
+                />
+              </Form.Group>
+            )}
             <Form.Group className="mb-3">
               <Form.Label>Maximum Support Orders Count</Form.Label>
               <Form.Control
@@ -125,10 +153,19 @@ function DCABackTest() {
               />
             </Form.Group>
             <Form.Group className="mb-3">
-              <Form.Label>Support Orders Amount Scale</Form.Label>
+              <Form.Label>Support Order Amount Scale</Form.Label>
               <Form.Control
                 onChange={(e) => onFormInputChange("supportOrderAmountScale", e)}
                 value={formInputs?.supportOrderAmountScale}
+                type="number"
+                placeholder="Support Orders Amount Scale"
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Support Order Price Deviation Scale</Form.Label>
+              <Form.Control
+                onChange={(e) => onFormInputChange("supportOrderPriceDeviationScale", e)}
+                value={formInputs?.supportOrderPriceDeviationScale}
                 type="number"
                 placeholder="Support Orders Amount Scale"
               />
@@ -144,6 +181,30 @@ function DCABackTest() {
                 placeholder="Target profit (%)"
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Check
+                type="checkbox"
+                checked={formInputs?.enableTrailingTakeProfit}
+                onChange={() =>
+                  setFormInputs({
+                    ...formInputs,
+                    enableTrailingTakeProfit: !formInputs.enableTrailingTakeProfit,
+                  })
+                }
+                label="Enable Trailing Take Profit"
+              />
+            </Form.Group>
+            {formInputs?.enableTrailingTakeProfit && (
+              <Form.Group className="mb-3">
+                <Form.Label>Tailing Take Profit Deviation (%)</Form.Label>
+                <Form.Control
+                  onChange={(e) => onFormInputChange("trailingTakeProfitDeviation", e)}
+                  value={formInputs?.trailingTakeProfitDeviation}
+                  type="number"
+                  placeholder="Trailing Take Profit Deviation (%)"
+                />
+              </Form.Group>
+            )}
           </Tab>
           <Tab eventKey="advanced-settings" title="Advanced Settings">
             <Form.Group className="mb-3">
@@ -159,47 +220,49 @@ function DCABackTest() {
                 label="Enable Custom Support Orders Config"
               />
             </Form.Group>
-            <Form.Group className="mb-3">
-              <Form.Check
-                type="checkbox"
-                checked={formInputs?.enableSmartOrder}
-                onChange={() =>
-                  setFormInputs({
-                    ...formInputs,
-                    enableSmartOrder: !formInputs.enableSmartOrder,
-                  })
-                }
-                label="Enable Smart Order"
-              />
-            </Form.Group>
-            {[...new Array(parseInt(formInputs?.maximumSupportOrdersCount))].map((o, index) => {
-              return (
-                <Row>
-                  <Col>
-                    <Form.Group className="mb-3">
-                      <Form.Label>{index + 1} Support Order Amount Scale</Form.Label>
-                      <Form.Control
-                        onChange={(e) => onFormInputChange("customerSupportOrderAmountScale", e, index + 1)}
-                        value={formInputs?.customerSupportOrderAmountScale?.[index + 1]}
-                        type="number"
-                        placeholder="Support Order Amount Scale"
-                      />
-                    </Form.Group>
-                  </Col>
-                  <Col>
-                    <Form.Group className="mb-3">
-                      <Form.Label>{index + 1} Support Order Price Deviation</Form.Label>
-                      <Form.Control
-                        onChange={(e) => onFormInputChange("customSupportOrderDeviation", e, index + 1)}
-                        value={formInputs?.customSupportOrderDeviation?.[index + 1]}
-                        type="number"
-                        placeholder="Support Order Price Deviation"
-                      />
-                    </Form.Group>
-                  </Col>
-                </Row>
-              );
-            })}
+            {formInputs?.enableCustomSupportOrders && (
+              <>
+                {[...new Array(parseInt(formInputs?.maximumSupportOrdersCount))].map((o, index) => {
+                  return (
+                    <Row>
+                      <Col>
+                        <Form.Group className="mb-3">
+                          <Form.Label>{index + 1} Support Order Amount Scale</Form.Label>
+                          <Form.Control
+                            onChange={(e) => onFormInputChange("customSupportOrderAmountScale", e, index + 1)}
+                            value={formInputs?.customSupportOrderAmountScale?.[index + 1]}
+                            type="number"
+                            placeholder="Support Order Amount Scale"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group className="mb-3">
+                          <Form.Label>{index + 1} Support Order Price Deviation</Form.Label>
+                          <Form.Control
+                            onChange={(e) => onFormInputChange("customSupportOrderDeviation", e, index + 1)}
+                            value={formInputs?.customSupportOrderDeviation?.[index + 1]}
+                            type="number"
+                            placeholder="Support Order Price Deviation"
+                          />
+                        </Form.Group>
+                      </Col>
+                      <Col>
+                        <Form.Group className="mb-3">
+                          <Form.Label>{index + 1} Trailing Deviation</Form.Label>
+                          <Form.Control
+                            onChange={(e) => onFormInputChange("customTrailingBuyDeviation", e, index + 1)}
+                            value={formInputs?.customTrailingBuyDeviation?.[index + 1]}
+                            type="number"
+                            placeholder="Trailing Deviation"
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                  );
+                })}
+              </>
+            )}
           </Tab>
         </Tabs>
         <Button onClick={getBackestDetails}>

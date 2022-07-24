@@ -17,7 +17,8 @@ async function dcaBacktest({
   takeProfitPercentage,
   // advanced settings
   enableCustomSupportOrders,
-  enableSmartOrder,
+  enableTrailing,
+  trailingDeviation,
   customSupportOrderDeviation,
   customerSupportOrderAmountScale,
 }) {
@@ -28,14 +29,12 @@ async function dcaBacktest({
   // GET KLINE DATA
   let backTestData = await KLineModel.find({
     symbol: asset,
-    interval: "15m",
+    interval: "5m",
     time: {
       $gte: backtestStartDate,
       $lte: backtestEndDate,
     },
   }).sort({ time: 1 });
-
-  console.log({ totalEntries: backTestData.length });
 
   // START TESTING
   const allOrders = [];
@@ -65,7 +64,6 @@ async function dcaBacktest({
   // LOOP THROUGH ALL THE KLINE FOR BUY & SELL
   let takeProfitTarget;
   let supportOrderTarget;
-  const callbackPercentage = 0.3;
   let lastCallbackPrice;
   let triggerPrice;
   backTestData.map((klineData) => {
@@ -120,10 +118,11 @@ async function dcaBacktest({
         currentDCAOrders = [];
       }
       // Identity the next averaging order target and wait for the callback to be executed
-      else if (enableSmartOrder && supportingOrderCount > 2) {
+      else if (enableTrailing && trailingDeviation?.[supportingOrderCount] > 0) {
+        const trailingDeviationPercentage = trailingDeviation[supportingOrderCount];
         if (!lastCallbackPrice && priceLow <= supportOrderTarget) {
           lastCallbackPrice = supportOrderTarget;
-          triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
+          triggerPrice = lastCallbackPrice * (1 + trailingDeviationPercentage / 100);
         } else if (priceHigh >= triggerPrice) {
           if (supportingOrderCount === maximumSupportOrdersCount) {
             overallMetrics.exceededMaxSupportOrdersCount += 1;
@@ -152,7 +151,7 @@ async function dcaBacktest({
           }
         } else {
           lastCallbackPrice = priceLow;
-          triggerPrice = lastCallbackPrice * (1 + callbackPercentage / 100);
+          triggerPrice = lastCallbackPrice * (1 + trailingDeviationPercentage / 100);
         }
 
         // Check if this is a conflicting order

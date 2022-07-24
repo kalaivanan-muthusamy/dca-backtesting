@@ -13,6 +13,8 @@ const klineSchema = new Schema({
   close: Number,
 });
 
+klineSchema.index({ symbol: 1, time: 1 })
+
 const KLineModel = mongoose.model('kline', klineSchema);
 
 module.exports = KLineModel;
